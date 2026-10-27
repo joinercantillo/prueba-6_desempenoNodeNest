@@ -17,8 +17,8 @@ import { brandCar } from '../../cars/enums/car-type.enum.js';
  * Reservations of the chain. `id`, `status`, `createdAt` and `updatedAt` are
  * managed by the system and are never accepted from the client.
  */
-@Entity('reservations')
-export class Reservation {
+@Entity('maintenance')
+export class Maintenance {
   @ApiProperty({ example: 1, description: 'Auto generated identifier' })
   @PrimaryGeneratedColumn()
   id: number;

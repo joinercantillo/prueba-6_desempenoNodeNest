@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Workshop } from '../../workshops/entities/workshop.entity.js';
-import { RoomStatus } from '../enums/car-status.enum.js';
+import { CarStatus } from '../enums/car-status.enum.js';
 import { brandCar } from '../enums/car-type.enum.js';
 
 /** Rooms available in each branch. */
@@ -33,9 +33,9 @@ export class Car {
   year: number;
   
 
-  @ApiProperty({ example: 'AVAILABLE', description: 'Operational status', enum: RoomStatus })
-  @Column({ type: 'varchar', length: 20, default: RoomStatus.AVAILABLE })
-  status: RoomStatus;
+  @ApiProperty({ example: 'AVAILABLE', description: 'Operational status', enum: CarStatus })
+  @Column({ type: 'varchar', length: 20, default: CarStatus.AVAILABLE })
+  status: CarStatus;
 
   @ApiProperty({ example: 1, description: 'Branch the room belongs to' })
   @Column({ name: 'hotel_id' })

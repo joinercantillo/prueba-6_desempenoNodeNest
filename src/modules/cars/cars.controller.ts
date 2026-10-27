@@ -5,19 +5,19 @@ import { Role } from '../../common/enums/role.enum.js';
 import { Car } from './entities/car.entity.js';
 import { RoomsService } from './cars.service.js';
 
-@ApiTags('Rooms')
+@ApiTags('Cars')
 @ApiSecurity('API Key')
 @ApiSecurity('User')
-@Controller('rooms')
+@Controller('cars')
 export class RoomsController {
   constructor(private readonly roomsService: RoomsService) {}
 
   @Get()
   @Roles(Role.ADMIN, Role.TECHNICIAN)
   @ApiOperation({
-    summary: 'List the rooms of the chain',
+    summary: 'List the car of workshop',
     description:
-      'Read-only master data. The reservation DTO references a room through its `roomId`.',
+      'Read-only master data. The reservation DTO references a Car through its `carId`.',
   })
   @ApiOkResponse({
     description: 'Room list',
@@ -27,9 +27,9 @@ export class RoomsController {
         data: [
           {
             id: 1,
-            number: '101',
-            roomType: 'SINGLE',
-            capacity: 2,
+            Registration: '101',
+            brandCar: 'Chevrolet',
+            year: 2000,
             status: 'AVAILABLE',
             hotelId: 1,
           },

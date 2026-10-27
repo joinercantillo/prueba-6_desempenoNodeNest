@@ -3,24 +3,24 @@ import { ApiOkResponse, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagg
 import { Roles } from '../../common/decorators/roles.decorator.js';
 import { Role } from '../../common/enums/role.enum.js';
 import { Mechanichs } from './entities/mechanichs.entity.js';
-import { ReceptionistsService } from './mechanichs.service.js';
+import { MechanichsistsService } from './mechanichs.service.js';
 
-@ApiTags('Receptionists')
+@ApiTags('Technicians')
 @ApiSecurity('API Key')
 @ApiSecurity('User')
-@Controller('receptionists')
+@Controller('Technicians')
 export class ReceptionistsController {
-  constructor(private readonly receptionistsService: ReceptionistsService) {}
+  constructor(private readonly receptionistsService: MechanichsistsService) {}
 
   @Get()
   @Roles(Role.ADMIN, Role.TECHNICIAN)
   @ApiOperation({
-    summary: 'List the receptionists of the chain',
+    summary: 'List the Technician of the chain',
     description:
-      'Read-only master data. Reservations reference a receptionist through `receptionistId`.',
+      'Read-only master data. maintenance reference a technician through `receptionistId`.',
   })
   @ApiOkResponse({
-    description: 'Receptionist list',
+    description: 'Technician list',
     schema: {
       example: {
         success: true,

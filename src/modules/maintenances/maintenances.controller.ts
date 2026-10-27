@@ -33,8 +33,8 @@ import { CreateReservationDto } from './dto/create-maintenances.dto.js';
 import { FilterReservationsDto } from './dto/filter-maintenances.dto.js';
 import { UpdateStatusDto } from './dto/update-status.dto.js';
 import { ReservationStatus } from './enums/maintenance-status.enum.js';
-import { Reservation } from './entities/maintenances.entity.js';
-import { ReservationsService } from './maintenances.service.js';
+import { Maintenance } from './entities/maintenances.entity.js';
+import { MaintenanceService } from './maintenances.service.js';
 
 const EXAMPLE_RESERVATION = {
   id: 1,
@@ -50,22 +50,22 @@ const EXAMPLE_RESERVATION = {
   updatedAt: '2026-10-25T15:04:05.000Z',
 };
 
-@ApiTags('Reservations')
+@ApiTags('Maintenance')
 @ApiSecurity('API Key')
 @ApiSecurity('User')
-@Controller('reservations')
+@Controller('maintenance')
 export class ReservationsController {
-  constructor(private readonly reservationsService: ReservationsService) {}
+  constructor(private readonly maintenanceService: MaintenanceService) {}
 
   @Post()
   @Roles(Role.ADMIN, Role.TECHNICIAN)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
-    summary: 'Register a reservation',
+    summary: 'Register a maintenance',
     description:
-      'Any valid role can register. The initial status is always PENDING. A receptionist registers ' +
-      'on their own behalf (the receptionistId value is ignored); admin and coordinator must send a ' +
-      'receptionistId that exists, is active and belongs to a receptionist user. roomId must exist.',
+      'Any valid role can register. The initial status is always SCHEDULED. A mechanichs registers ' +
+      'on their own behalf (the mechanichs value is ignored); admin and mechanichs must send a ' +
+      'mechanichstId that exists, is active and belongs to a mechanichs user. carId must exist.',
   })
   @ApiCreatedResponse({
     description: 'Reservation created',
@@ -84,8 +84,8 @@ export class ReservationsController {
   create(
     @Body() createReservationDto: CreateReservationDto,
     @CurrentUser() user: User,
-  ): Promise<Reservation> {
-    return this.reservationsService.create(createReservationDto, user);
+  ): Promise<Maintenance> {
+    return this.maintenanceService.create(createReservationDto, user);
   }
 
   @Get()
@@ -108,8 +108,8 @@ export class ReservationsController {
   findAll(
     @Query() filterReservationsDto: FilterReservationsDto,
     @CurrentUser() user: User,
-  ): Promise<Reservation[]> {
-    return this.reservationsService.findAll(filterReservationsDto, user);
+  ): Promise<Maintenance[]> {
+    return this.maintenanceService.findAll(filterReservationsDto, user);
   }
 
   @Get('summary')
@@ -124,10 +124,10 @@ export class ReservationsController {
       example: {
         success: true,
         data: [
-          { status: 'PENDING', total: 3 },
+          { status: 'SCHEDULED', total: 3 },
           { status: 'CONFIRMED', total: 2 },
           { status: 'IN_PROGRESS', total: 1 },
-          { status: 'FINISHED', total: 0 },
+          { status: 'COMPLETED', total: 0 },
           { status: 'CANCELLED', total: 1 },
         ],
       },
@@ -138,50 +138,50 @@ export class ReservationsController {
     description: 'A receptionist cannot read the summary',
   })
   summary(): Promise<{ status: ReservationStatus; total: number }[]> {
-    return this.reservationsService.summary();
+    return this.maintenanceService.summary();
   }
 
   @Get(':id')
   @Roles(Role.ADMIN,  Role.TECHNICIAN)
   @ApiOperation({
-    summary: 'Get one reservation',
+    summary: 'Get one maintenance',
     description:
-      'Knowing the id is not enough: a receptionist can only read reservations assigned to them.',
+      'Knowing the id is not enough: a mechanich can only read reservations assigned to them.',
   })
-  @ApiParam({ name: 'id', description: 'Reservation id', example: 1 })
+  @ApiParam({ name: 'id', description: 'mainteance id', example: 1 })
   @ApiOkResponse({
-    description: 'Reservation detail',
+    description: 'mainteance detail',
     schema: { example: { success: true, data: EXAMPLE_RESERVATION } },
   })
   @ApiBadRequestResponse({
     type: ErrorResponseDto,
     description: 'The id is not a number',
   })
-  @ApiNotFoundResponse({ type: ErrorResponseDto, description: 'Reservation does not exist' })
+  @ApiNotFoundResponse({ type: ErrorResponseDto, description: 'Mainteance does not exist' })
   @ApiForbiddenResponse({
     type: ErrorResponseDto,
-    description: 'Reservation belongs to another receptionist',
+    description: 'mainteance belongs to another mechanich',
   })
   @ApiUnauthorizedResponse({ type: ErrorResponseDto, description: 'Invalid identity' })
   findOne(
     @Param('id', ParsePositiveIdPipe) id: number,
     @CurrentUser() user: User,
-  ): Promise<Reservation> {
-    return this.reservationsService.findOne(id, user);
+  ): Promise<Maintenance> {
+    return this.maintenanceService.findOne(id, user);
   }
 
   @Patch(':id/status')
   @Roles(Role.ADMIN,  Role.TECHNICIAN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Change the status of a reservation',
+    summary: 'Change the status of a mainteance',
     description:
-      'Only the "status" field is accepted. admin and coordinator can change any reservation; a ' +
-      'receptionist only their own and can never cancel. Status jumps are not allowed.',
+      'Only the "status" field is accepted. admin and thecnician can change any mainteance; a ' +
+      'mechanics only their own and can never cancel. Status jumps are not allowed.',
   })
   @ApiParam({ name: 'id', description: 'Reservation id', example: 1 })
   @ApiOkResponse({
-    description: 'Reservation with the new status',
+    description: 'Mainteance with the new status',
     schema: {
       example: { success: true, data: { ...EXAMPLE_RESERVATION, status: 'CONFIRMED' } },
     },
@@ -190,10 +190,10 @@ export class ReservationsController {
     type: ErrorResponseDto,
     description: 'Unknown status or fields that do not belong to the operation',
   })
-  @ApiNotFoundResponse({ type: ErrorResponseDto, description: 'Reservation does not exist' })
+  @ApiNotFoundResponse({ type: ErrorResponseDto, description: 'maintenance does not exist' })
   @ApiForbiddenResponse({
     type: ErrorResponseDto,
-    description: 'Reservation of another user or cancellation by a receptionist',
+    description: 'maintenance of another user or cancellation by a technician',
   })
   @ApiConflictResponse({
     type: ErrorResponseDto,
@@ -203,7 +203,7 @@ export class ReservationsController {
     @Param('id', ParsePositiveIdPipe) id: number,
     @Body() updateStatusDto: UpdateStatusDto,
     @CurrentUser() user: User,
-  ): Promise<Reservation> {
-    return this.reservationsService.updateStatus(id, updateStatusDto, user);
+  ): Promise<Maintenance> {
+    return this.maintenanceService.updateStatus(id, updateStatusDto, user);
   }
 }

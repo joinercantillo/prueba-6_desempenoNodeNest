@@ -1,4 +1,4 @@
-export enum RoomStatus {
+export enum CarStatus {
   AVAILABLE = 'AVAILABLE',
   OCCUPIED = 'INACTIVE',
   MAINTENANCE = ' IN_MAINTENANCE',

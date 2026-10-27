@@ -6,7 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { Role } from '../common/enums/role.enum.js';
 import { Workshop } from '../modules/workshops/entities/workshop.entity.js';
 import { Mechanichs } from '../modules/mechanics/entities/mechanichs.entity.js';
-import { RoomStatus } from '../modules/cars/enums/car-status.enum.js';
+import { CarStatus } from '../modules/cars/enums/car-status.enum.js';
 import { brandCar } from '../modules/cars/enums/car-type.enum.js';
 import { Car } from '../modules/cars/entities/car.entity.js';
 import { User } from '../modules/users/entities/user.entity.js';
@@ -89,12 +89,12 @@ export class SeedService implements OnApplicationBootstrap {
     }
 
     await this.carRepository.insert([
-      { id: 1, Registration: '101', brandCar: brandCar.Mazda, year: 2004, status: RoomStatus.AVAILABLE, hotelId: 1 },
-      { id: 2, Registration: '102', brandCar: brandCar.Chevrolet, year: 2006, status: RoomStatus.AVAILABLE, hotelId: 1 },
-      { id: 3, Registration: '201', brandCar: brandCar.Nissan, year: 2009, status: RoomStatus.AVAILABLE, hotelId: 1 },
-      { id: 4, Registration: '101', brandCar: brandCar.Chevrolet, year: 2007, status: RoomStatus.AVAILABLE, hotelId: 2 },
-      { id: 5, Registration: '202', brandCar: brandCar.Nissan, year: 2008, status: RoomStatus.AVAILABLE, hotelId: 2 },
-      { id: 6, Registration: '301', brandCar: brandCar.Mazda, year: 2010, status: RoomStatus.AVAILABLE, hotelId: 3 },
+      { id: 1, Registration: '101', brandCar: brandCar.Mazda, year: 2004, status: CarStatus.AVAILABLE, hotelId: 1 },
+      { id: 2, Registration: '102', brandCar: brandCar.Chevrolet, year: 2006, status: CarStatus.AVAILABLE, hotelId: 1 },
+      { id: 3, Registration: '201', brandCar: brandCar.Nissan, year: 2009, status: CarStatus.AVAILABLE, hotelId: 1 },
+      { id: 4, Registration: '101', brandCar: brandCar.Chevrolet, year: 2007, status: CarStatus.AVAILABLE, hotelId: 2 },
+      { id: 5, Registration: '202', brandCar: brandCar.Nissan, year: 2008, status: CarStatus.AVAILABLE, hotelId: 2 },
+      { id: 6, Registration: '301', brandCar: brandCar.Mazda, year: 2010, status: CarStatus.AVAILABLE, hotelId: 3 },
     ]);
 
     await this.syncSequence('cars');

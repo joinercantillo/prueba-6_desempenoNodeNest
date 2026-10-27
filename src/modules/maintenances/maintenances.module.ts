@@ -3,18 +3,18 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ReceptionistsModule } from '../mechanics/mechanichs.module.js';
 import { RoomsModule } from '../cars/cars.module.js';
 import { UsersModule } from '../users/users.module.js';
-import { Reservation } from './entities/maintenances.entity.js';
+import { Maintenance } from './entities/maintenances.entity.js';
 import { ReservationsController } from './maintenances.controller.js';
-import { ReservationsService } from './maintenances.service.js';
+import { MaintenanceService } from './maintenances.service.js';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Reservation]),
+    TypeOrmModule.forFeature([Maintenance]),
     UsersModule,
     ReceptionistsModule,
     RoomsModule,
   ],
   controllers: [ReservationsController],
-  providers: [ReservationsService],
+  providers: [MaintenanceService],
 })
 export class ReservationsModule {}

@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Workshop } from './entities/workshop.entity.js';
 
 @Injectable()
-export class HotelsService {
+export class WorkshopService {
   constructor(
     @InjectRepository(Workshop)
     private readonly hotelsRepository: Repository<Workshop>,

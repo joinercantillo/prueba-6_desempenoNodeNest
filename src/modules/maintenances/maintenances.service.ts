@@ -9,7 +9,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Role } from '../../common/enums/role.enum.js';
-import { ReceptionistsService } from '../mechanics/mechanichs.service.js';
+import { MechanichsistsService } from '../mechanics/mechanichs.service.js';
 import { RoomsService } from '../cars/cars.service.js';
 import { User } from '../users/entities/user.entity.js';
 import { USER_DIRECTORY } from '../users/user-directory.interface.js';
@@ -18,18 +18,18 @@ import { CreateReservationDto } from './dto/create-maintenances.dto.js';
 import { FilterReservationsDto } from './dto/filter-maintenances.dto.js';
 import { UpdateStatusDto } from './dto/update-status.dto.js';
 import { ReservationStatus } from './enums/maintenance-status.enum.js';
-import { Reservation } from './entities/maintenances.entity.js';
+import { Maintenance } from './entities/maintenances.entity.js';
 import { canCancel, isOwner, isValidTransition } from './rules/status-rules.js';
 
 @Injectable()
-export class ReservationsService {
+export class MaintenanceService {
   constructor(
-    @InjectRepository(Reservation)
-    private readonly reservationsRepository: Repository<Reservation>,
+    @InjectRepository(Maintenance)
+    private readonly reservationsRepository: Repository<Maintenance>,
     // Depends on the contract, not on the concrete service (Dependency Inversion).
     @Inject(USER_DIRECTORY)
     private readonly userDirectory: UserDirectory,
-    private readonly receptionistsService: ReceptionistsService,
+    private readonly receptionistsService: MechanichsistsService,
     private readonly roomsService: RoomsService,
   ) {}
 
@@ -37,7 +37,7 @@ export class ReservationsService {
    * RN-01: registers a reservation. The status is always PENDING and the
    * responsible receptionist depends on the role of the caller.
    */
-  async create(dto: CreateReservationDto, user: User): Promise<Reservation> {
+  async create(dto: CreateReservationDto, user: User): Promise<Maintenance> {
     const receptionistId = await this.resolveReceptionistId(dto, user);
 
     const room = await this.roomsService.find(dto.roomId);
@@ -64,8 +64,8 @@ export class ReservationsService {
    * A receptionist only gets their own reservations and the `status` filter is
    * combined with that restriction, never replaced by it.
    */
-  async findAll(query: FilterReservationsDto, user: User): Promise<Reservation[]> {
-    const where: FindOptionsWhere<Reservation> = {};
+  async findAll(query: FilterReservationsDto, user: User): Promise<Maintenance[]> {
+    const where: FindOptionsWhere<Maintenance> = {};
 
     if (user.role === Role.TECHNICIAN && typeof user.receptionistId === 'number') {
       where.receptionistId = user.receptionistId;
@@ -79,7 +79,7 @@ export class ReservationsService {
   }
 
   /** The access rules also apply to the individual lookup. */
-  async findOne(id: number, user: User): Promise<Reservation> {
+  async findOne(id: number, user: User): Promise<Maintenance> {
     const reservation = await this.reservationsRepository.findOneBy({ id });
 
     if (!reservation) {
@@ -95,7 +95,7 @@ export class ReservationsService {
     id: number,
     dto: UpdateStatusDto,
     user: User,
-  ): Promise<Reservation> {
+  ): Promise<Maintenance> {
     const reservation = await this.findOne(id, user);
 
     if (!isValidTransition(reservation.status, dto.status)) {
@@ -169,7 +169,7 @@ export class ReservationsService {
     return receptionist.id;
   }
 
-  private assertOwnership(reservation: Reservation, user: User): void {
+  private assertOwnership(reservation: Maintenance, user: User): void {
     if (!isOwner(user.role, reservation.receptionistId, user.receptionistId)) {
       throw new ForbiddenException(
         'You are not allowed to access this reservation: it is not assigned to your user',

@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../../common/enums/role.enum.js';
-import { ReceptionistsService } from '../mechanics/mechanichs.service.js';
+import { MechanichsistsService } from '../mechanics/mechanichs.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { User } from './entities/user.entity.js';
@@ -22,7 +22,7 @@ export class UsersService implements UserDirectory {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-    private readonly receptionistsService: ReceptionistsService,
+    private readonly receptionistsService: MechanichsistsService,
     private readonly configService: ConfigService,
   ) {}
 

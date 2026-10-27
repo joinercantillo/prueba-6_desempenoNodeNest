@@ -3,23 +3,23 @@ import { ApiOkResponse, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagg
 import { Roles } from '../../common/decorators/roles.decorator.js';
 import { Role } from '../../common/enums/role.enum.js';
 import { Workshop } from './entities/workshop.entity.js';
-import { HotelsService } from './workshops.service.js';
+import { WorkshopService } from './workshops.service.js';
 
-@ApiTags('Hotels')
+@ApiTags('Workshops')
 @ApiSecurity('API Key')
 @ApiSecurity('User')
-@Controller('hotels')
-export class HotelsController {
-  constructor(private readonly hotelsService: HotelsService) {}
+@Controller('Workshops')
+export class WorkshopController {
+  constructor(private readonly workshopService: WorkshopService) {}
 
   @Get()
   @Roles(Role.ADMIN,  Role.TECHNICIAN)
   @ApiOperation({
-    summary: 'List the branches of the chain',
+    summary: 'List the workshops ',
     description: 'Read-only master data: Via 40, Rio Riverwalk and North city branches.',
   })
   @ApiOkResponse({
-    description: 'Branch list',
+    description: 'workshops list',
     schema: {
       example: {
         success: true,
@@ -28,6 +28,6 @@ export class HotelsController {
     },
   })
   findAll(): Promise<Workshop[]> {
-    return this.hotelsService.findAll();
+    return this.workshopService.findAll();
   }
 }

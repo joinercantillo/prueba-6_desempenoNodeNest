@@ -46,13 +46,13 @@ export class UsersController {
   @ApiOperation({
     summary: 'Create a user (admin only)',
     description:
-      'The password is hashed with bcrypt before being stored. A user with the receptionist ' +
-      'role must reference an active row of the receptionists table through receptionistId.',
+      'The password is hashed with bcrypt before being stored. A user with the thecnician ' +
+      'role must reference an active row of the thecnicians table through thecnicianId.',
   })
   @ApiCreatedResponse({ type: UserResponseDto, description: 'User created' })
   @ApiBadRequestResponse({
     type: ErrorResponseDto,
-    description: 'Invalid DTO, duplicated username or invalid receptionist link',
+    description: 'Invalid DTO, duplicated username or invalid thecnician link',
   })
   @ApiUnauthorizedResponse({ type: ErrorResponseDto, description: 'Invalid identity' })
   @ApiForbiddenResponse({ type: ErrorResponseDto, description: 'Only admin can manage users' })
@@ -90,7 +90,7 @@ export class UsersController {
   })
   @ApiParam({ name: 'id', description: 'User id', example: 3 })
   @ApiOkResponse({ type: UserResponseDto, description: 'User updated' })
-  @ApiBadRequestResponse({ type: ErrorResponseDto, description: 'Invalid DTO or receptionist link' })
+  @ApiBadRequestResponse({ type: ErrorResponseDto, description: 'Invalid DTO or thecnician link' })
   @ApiNotFoundResponse({ type: ErrorResponseDto, description: 'User does not exist' })
   @ApiForbiddenResponse({ type: ErrorResponseDto, description: 'Only admin can manage users' })
   update(
