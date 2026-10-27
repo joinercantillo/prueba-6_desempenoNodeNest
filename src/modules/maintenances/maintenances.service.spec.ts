@@ -3,17 +3,17 @@ import { BadRequestException, ConflictException, ForbiddenException, NotFoundExc
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Role } from '../../common/enums/role.enum.js';
-import { ReceptionistsService } from '../mechanics/mechanichs.service.js';
+import { MechanichsistsService } from '../mechanics/mechanichs.service.js';
 import { RoomsService } from '../cars/cars.service.js';
-import { RoomType } from '../cars/enums/car-type.enum.js';
+import { brandCar } from '../cars/enums/car-type.enum.js';
 import { USER_DIRECTORY } from '../users/user-directory.interface.js';
 import type { UserDirectory } from '../users/user-directory.interface.js';
 import { User } from '../users/entities/user.entity.js';
-import { CreateReservationDto } from './dto/create-reservation.dto.js';
+import { CreateMaintenanceDto } from './dto/create-maintenances.dto.js';
 import { UpdateStatusDto } from './dto/update-status.dto.js';
-import { Reservation } from './entities/maintenances.entity.js';
+import { Maintenance } from './entities/maintenances.entity.js';
 import { ReservationStatus } from './enums/maintenance-status.enum.js';
-import { ReservationsService } from './maintenances.service.js';
+import { MaintenanceService } from './maintenances.service.js';
 
 /** Repository double: only the methods used by the service are declared. */
 const repository = {
@@ -48,17 +48,17 @@ const buildUser = (overrides: Partial<User> = {}): User => ({
   id: 3,
   username: 'receptionist-1',
   name: 'Maria Rojas (Via 40 branch)',
-  role: Role.RECEPTIONIST,
+  role: Role.TECHNICIAN,
   receptionistId: 1,
   passwordHash: 'hashed',
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
   ...overrides,
 });
 
-const buildDto = (overrides: Partial<CreateReservationDto> = {}): CreateReservationDto => ({
+const buildDto = (overrides: Partial<CreateMaintenanceDto> = {}): CreateMaintenanceDto => ({
   guest: 'Juan Perez',
   guestDocument: '12345678',
-  roomType: RoomType.SINGLE,
+  branCar: brandCar.Chevrolet,
   checkInDate: '2027-02-13',
   checkOutDate: '2027-02-17',
   roomId: 1,
@@ -77,7 +77,7 @@ const failureOf = async (call: Promise<unknown>): Promise<Error> =>
   );
 
 describe('ReservationsService', () => {
-  let service: ReservationsService;
+  let service: MaintenanceService;
 
   beforeEach(async () => {
     // Reset (not only clear): it also drops any leftover *Once* implementation
@@ -86,15 +86,15 @@ describe('ReservationsService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        ReservationsService,
-        { provide: getRepositoryToken(Reservation), useValue: repository },
+        MaintenanceService,
+        { provide: getRepositoryToken(Maintenance), useValue: repository },
         { provide: USER_DIRECTORY, useValue: userDirectory },
-        { provide: ReceptionistsService, useValue: receptionistsService },
+        { provide: MechanichsistsService, useValue: MechanichsistsService },
         { provide: RoomsService, useValue: roomsService },
       ],
     }).compile();
 
-    service = module.get<ReservationsService>(ReservationsService);
+    service = module.get<MaintenanceService>(MaintenanceService);
 
     // Default happy path: an existing, active receptionist with a linked user
     // and an existing room.
@@ -119,12 +119,12 @@ describe('ReservationsService', () => {
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({
           receptionistId: 1,
-          status: ReservationStatus.PENDING,
+          status: ReservationStatus.SCHEDULED,
           guest: 'Juan Perez',
           roomId: 1,
         }),
       );
-      expect(created).toMatchObject({ status: ReservationStatus.PENDING, receptionistId: 1 });
+      expect(created).toMatchObject({ status: ReservationStatus.SCHEDULED, receptionistId: 1 });
       // The receptionist does not choose anything: no lookup of the payload.
       expect(receptionistsService.find).not.toHaveBeenCalled();
       expect(findReceptionistByReceptionistId).not.toHaveBeenCalled();
@@ -142,7 +142,7 @@ describe('ReservationsService', () => {
     it('requires receptionistId for admins and coordinators', async () => {
       const adminError = await failureOf(service.create(buildDto(), buildUser({ role: Role.ADMIN })));
       const coordinatorError = await failureOf(
-        service.create(buildDto(), buildUser({ role: Role.COORDINATOR })),
+        service.create(buildDto(), buildUser({ role: Role.TECHNICIAN })),
       );
 
       expect(adminError).toBeInstanceOf(BadRequestException);
@@ -193,10 +193,10 @@ describe('ReservationsService', () => {
       expect(receptionistsService.find).toHaveBeenCalledWith(1);
       expect(findReceptionistByReceptionistId).toHaveBeenCalledWith(1);
       expect(repository.create).toHaveBeenCalledWith(
-        expect.objectContaining({ receptionistId: 1, status: ReservationStatus.PENDING }),
+        expect.objectContaining({ receptionistId: 1, status: ReservationStatus.SCHEDULED }),
       );
       expect(repository.save).toHaveBeenCalledTimes(1);
-      expect(created).toMatchObject({ id: 10, status: ReservationStatus.PENDING });
+      expect(created).toMatchObject({ id: 10, status: ReservationStatus.SCHEDULED });
     });
   });
 
@@ -282,7 +282,7 @@ describe('ReservationsService', () => {
       repository.findOneBy.mockResolvedValue({ id: 7, receptionistId: 2 });
 
       await expect(
-        service.findOne(7, buildUser({ role: Role.COORDINATOR })),
+        service.findOne(7, buildUser({ role: Role.TECHNICIAN })),
       ).resolves.toMatchObject({ id: 7 });
       await expect(service.findOne(7, buildUser({ role: Role.ADMIN }))).resolves.toMatchObject({
         id: 7,
@@ -291,11 +291,11 @@ describe('ReservationsService', () => {
   });
 
   describe('updateStatus (RN-03)', () => {
-    const reservationWith = (status: ReservationStatus, receptionistId = 1): Reservation =>
-      ({ id: 5, status, receptionistId }) as Reservation;
+    const reservationWith = (status: ReservationStatus, receptionistId = 1): Maintenance =>
+      ({ id: 5, status, receptionistId }) as Maintenance;
 
     it('moves a reservation from PENDING to CONFIRMED and saves it', async () => {
-      repository.findOneBy.mockResolvedValueOnce(reservationWith(ReservationStatus.PENDING));
+      repository.findOneBy.mockResolvedValueOnce(reservationWith(ReservationStatus.SCHEDULED));
 
       const updated = await service.updateStatus(
         5,
@@ -310,7 +310,7 @@ describe('ReservationsService', () => {
     });
 
     it('answers 409 when the transition is not allowed by the state machine', async () => {
-      repository.findOneBy.mockResolvedValueOnce(reservationWith(ReservationStatus.PENDING));
+      repository.findOneBy.mockResolvedValueOnce(reservationWith(ReservationStatus.SCHEDULED));
 
       const error = await failureOf(
         service.updateStatus(
@@ -326,7 +326,7 @@ describe('ReservationsService', () => {
     });
 
     it('answers 403 when a receptionist tries to cancel, even their own reservation', async () => {
-      repository.findOneBy.mockResolvedValueOnce(reservationWith(ReservationStatus.PENDING));
+      repository.findOneBy.mockResolvedValueOnce(reservationWith(ReservationStatus.SCHEDULED));
 
       const error = await failureOf(
         service.updateStatus(
@@ -342,7 +342,7 @@ describe('ReservationsService', () => {
     });
 
     it('answers 403 before anything else when a receptionist touches another reservation', async () => {
-      repository.findOneBy.mockResolvedValueOnce(reservationWith(ReservationStatus.PENDING, 2));
+      repository.findOneBy.mockResolvedValueOnce(reservationWith(ReservationStatus.SCHEDULED, 2));
 
       await expect(
         service.updateStatus(
@@ -372,7 +372,7 @@ describe('ReservationsService', () => {
       const updated = await service.updateStatus(
         5,
         { status: ReservationStatus.CANCELLED } as UpdateStatusDto,
-        buildUser({ role: Role.COORDINATOR }),
+        buildUser({ role: Role.TECHNICIAN }),
       );
 
       expect(updated.status).toBe(ReservationStatus.CANCELLED);
@@ -380,7 +380,7 @@ describe('ReservationsService', () => {
     });
 
     it('answers 409 from a final status, so FINISHED cannot change anymore', async () => {
-      repository.findOneBy.mockResolvedValueOnce(reservationWith(ReservationStatus.FINISHED));
+      repository.findOneBy.mockResolvedValueOnce(reservationWith(ReservationStatus.COMPLETED));
 
       await expect(
         service.updateStatus(
@@ -395,20 +395,20 @@ describe('ReservationsService', () => {
   describe('summary', () => {
     it('returns one row per status with the count of each one', async () => {
       repository.count.mockImplementation(async ({ where }) =>
-        where.status === ReservationStatus.PENDING ? 3 : 0,
+        where.status === ReservationStatus.SCHEDULED ? 3 : 0,
       );
 
       const summary = await service.summary();
 
       expect(summary).toHaveLength(5);
-      expect(summary.map((row) => row.status)).toEqual([
-        ReservationStatus.PENDING,
+      expect(summary.map((row: any) => row.status)).toEqual([
+        ReservationStatus.SCHEDULED,
         ReservationStatus.CONFIRMED,
         ReservationStatus.IN_PROGRESS,
-        ReservationStatus.FINISHED,
+        ReservationStatus.COMPLETED,
         ReservationStatus.CANCELLED,
       ]);
-      expect(summary[0]).toEqual({ status: ReservationStatus.PENDING, total: 3 });
+      expect(summary[0]).toEqual({ status: ReservationStatus.SCHEDULED, total: 3 });
       expect(repository.count).toHaveBeenCalledTimes(5);
     });
   });

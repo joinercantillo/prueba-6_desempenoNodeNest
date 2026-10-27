@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ReceptionistsModule } from '../mechanics/mechanichs.module.js';
+import { MainteanceModule } from '../mechanics/mechanichs.module.js';
 import { User } from './entities/user.entity.js';
 import { UsersController } from './users.controller.js';
 import { USER_DIRECTORY } from './user-directory.interface.js';
 import { UsersService } from './users.service.js';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), ReceptionistsModule],
+  imports: [TypeOrmModule.forFeature([User]), MainteanceModule],
   controllers: [UsersController],
   providers: [
     UsersService,

@@ -10,4 +10,4 @@ import { MechanichsistsService } from './mechanichs.service.js';
   providers: [MechanichsistsService],
   exports: [MechanichsistsService],
 })
-export class ReceptionistsModule {}
+export class MainteanceModule {}

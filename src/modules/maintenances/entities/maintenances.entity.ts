@@ -36,7 +36,7 @@ export class Maintenance {
 
   @ApiProperty({ example: 'SUITE', description: 'Booked room type', enum: brandCar })
   @Column({ name: 'room_type', type: 'varchar', length: 20 })
-  roomType: brandCar;
+  brandCar: brandCar;
 
   @ApiProperty({ example: '2027-02-13', description: 'Arrival date (ISO 8601)' })
   @Column({ name: 'check_in', type: 'date' })

@@ -43,7 +43,7 @@ export class StayDatesValidator implements ValidatorConstraintInterface {
  * belong to the system and any attempt to send them is rejected by the global
  * ValidationPipe (`whitelist` + `forbidNonWhitelisted`).
  */
-export class CreateReservationDto {
+export class CreateMaintenanceDto {
   @ApiProperty({ description: 'Full name of the guest', example: 'Juan Perez' })
   @IsString({ message: 'guest must be a string' })
   @IsNotEmpty({ message: 'guest is required' })
@@ -63,7 +63,7 @@ export class CreateReservationDto {
 
   @ApiProperty({ description: 'Booked room type', enum: brandCar, example: 'SUITE' })
   @IsEnum(brandCar, { message: 'roomType must be SINGLE, DOUBLE or SUITE' })
-  roomType: brandCar;
+  branCar: brandCar;
 
   @ApiProperty({
     description: 'Arrival date in ISO 8601 format. It cannot be in the past',

@@ -10,9 +10,9 @@ import { DatabaseModule } from './database/database.module.js';
 import { EnvConfig } from './config/env.config.js';
 import { envValidationSchema } from './config/env.validation.schema.js';
 import { HotelsModule } from './modules/workshops/workshops.module.js';
-import { ReceptionistsModule } from './modules/mechanics/mechanichs.module.js';
+import { MainteanceModule } from './modules/mechanics/mechanichs.module.js';
 import { ReservationsModule } from './modules/maintenances/maintenances.module.js';
-import { RoomsModule } from './modules/cars/cars.module.js';
+import { CarsModule } from './modules/cars/cars.module.js';
 import { UsersModule } from './modules/users/users.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 
@@ -37,8 +37,8 @@ import { AuthModule } from './modules/auth/auth.module.js';
     DatabaseModule,
     UsersModule,
     HotelsModule,
-    RoomsModule,
-    ReceptionistsModule,
+    CarsModule,
+    MainteanceModule,
     ReservationsModule,
     AuthModule,
     

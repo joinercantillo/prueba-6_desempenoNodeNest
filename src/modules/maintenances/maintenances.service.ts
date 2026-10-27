@@ -14,7 +14,7 @@ import { RoomsService } from '../cars/cars.service.js';
 import { User } from '../users/entities/user.entity.js';
 import { USER_DIRECTORY } from '../users/user-directory.interface.js';
 import type { UserDirectory } from '../users/user-directory.interface.js';
-import { CreateReservationDto } from './dto/create-maintenances.dto.js';
+import { CreateMaintenanceDto } from './dto/create-maintenances.dto.js';
 import { FilterReservationsDto } from './dto/filter-maintenances.dto.js';
 import { UpdateStatusDto } from './dto/update-status.dto.js';
 import { ReservationStatus } from './enums/maintenance-status.enum.js';
@@ -25,7 +25,7 @@ import { canCancel, isOwner, isValidTransition } from './rules/status-rules.js';
 export class MaintenanceService {
   constructor(
     @InjectRepository(Maintenance)
-    private readonly reservationsRepository: Repository<Maintenance>,
+    private readonly maintenanceRepository: Repository<Maintenance>,
     // Depends on the contract, not on the concrete service (Dependency Inversion).
     @Inject(USER_DIRECTORY)
     private readonly userDirectory: UserDirectory,
@@ -37,7 +37,7 @@ export class MaintenanceService {
    * RN-01: registers a reservation. The status is always PENDING and the
    * responsible receptionist depends on the role of the caller.
    */
-  async create(dto: CreateReservationDto, user: User): Promise<Maintenance> {
+  async create(dto: CreateMaintenanceDto, user: User): Promise<Maintenance> {
     const receptionistId = await this.resolveReceptionistId(dto, user);
 
     const room = await this.roomsService.find(dto.roomId);
@@ -45,10 +45,10 @@ export class MaintenanceService {
       throw new BadRequestException(`Room with id "${dto.roomId}" does not exist`);
     }
 
-    const reservation = this.reservationsRepository.create({
+    const reservation = this.maintenanceRepository.create({
       guest: dto.guest.trim(),
       guestDocument: dto.guestDocument,
-      roomType: dto.roomType,
+      brandCar: dto.branCar,
       checkInDate: dto.checkInDate,
       checkOutDate: dto.checkOutDate,
       receptionistId,
@@ -56,7 +56,7 @@ export class MaintenanceService {
       status: ReservationStatus.SCHEDULED,
     });
 
-    return this.reservationsRepository.save(reservation);
+    return this.maintenanceRepository.save(reservation);
   }
 
   /**
@@ -75,12 +75,12 @@ export class MaintenanceService {
       where.status = query.status;
     }
 
-    return this.reservationsRepository.find({ where, order: { createdAt: 'DESC' } });
+    return this.maintenanceRepository.find({ where, order: { createdAt: 'DESC' } });
   }
 
   /** The access rules also apply to the individual lookup. */
   async findOne(id: number, user: User): Promise<Maintenance> {
-    const reservation = await this.reservationsRepository.findOneBy({ id });
+    const reservation = await this.maintenanceRepository.findOneBy({ id });
 
     if (!reservation) {
       throw new NotFoundException(`Reservation with id "${id}" does not exist`);
@@ -111,7 +111,7 @@ export class MaintenanceService {
     }
 
     reservation.status = dto.status;
-    return this.reservationsRepository.save(reservation);
+    return this.maintenanceRepository.save(reservation);
   }
 
   /** Status count for the whole chain (admin and coordinator only). */
@@ -121,12 +121,12 @@ export class MaintenanceService {
     return Promise.all(
       statuses.map(async (status) => ({
         status,
-        total: await this.reservationsRepository.count({ where: { status } }),
+        total: await this.maintenanceRepository.count({ where: { status } }),
       })),
     );
   }
 
-  private async resolveReceptionistId(dto: CreateReservationDto, user: User): Promise<number> {
+  private async resolveReceptionistId(dto: CreateMaintenanceDto, user: User): Promise<number> {
     // A receptionist can only register reservations on their own behalf;
     // any value sent by the client is ignored.
     if (user.role === Role.TECHNICIAN) {

@@ -28,8 +28,7 @@ import { ErrorResponseDto } from '../../common/dto/error-response.dto.js';
 import { Role } from '../../common/enums/role.enum.js';
 import { ParsePositiveIdPipe } from '../../common/pipes/positive-id.pipe.js';
 import type { User } from '../users/entities/user.entity.js';
-
-import { CreateReservationDto } from './dto/create-maintenances.dto.js';
+import { CreateMaintenanceDto } from './dto/create-maintenances.dto.js';
 import { FilterReservationsDto } from './dto/filter-maintenances.dto.js';
 import { UpdateStatusDto } from './dto/update-status.dto.js';
 import { ReservationStatus } from './enums/maintenance-status.enum.js';
@@ -82,7 +81,7 @@ export class ReservationsController {
   })
   @ApiForbiddenResponse({ type: ErrorResponseDto, description: 'Role not allowed' })
   create(
-    @Body() createReservationDto: CreateReservationDto,
+    @Body() createReservationDto: CreateMaintenanceDto,
     @CurrentUser() user: User,
   ): Promise<Maintenance> {
     return this.maintenanceService.create(createReservationDto, user);
