@@ -1,48 +1,81 @@
-import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Hotel } from './entities/workshop.entity.js';
-import { HotelsService } from './workshops.service.js';
+import { NotFoundException, ConflictException } from '@nestjs/common';
+import { WorkshopsService } from './workshops.service.js';
+import { Workshop } from './entities/workshop.entity.js';
 
-/** Repository double: the service only asks for `find`. */
-const repository = {
-  find: jest.fn<() => Promise<unknown>>(),
-};
+const mockRepository = () => ({
+  find: jest.fn(),
+  findOne: jest.fn(),
+  create: jest.fn(),
+  save: jest.fn(),
+});
 
-describe('HotelsService', () => {
-  let service: HotelsService;
+describe('WorkshopsService', () => {
+  let service: WorkshopsService;
+  let repository: any;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
-
     const module: TestingModule = await Test.createTestingModule({
-      providers: [HotelsService, { provide: getRepositoryToken(Hotel), useValue: repository }],
+      providers: [
+        WorkshopsService,
+        {
+          provide: getRepositoryToken(Workshop),
+          useFactory: mockRepository,
+        },
+      ],
     }).compile();
 
-    service = module.get<HotelsService>(HotelsService);
+    service = module.get<WorkshopsService>(WorkshopsService);
+    repository = module.get(getRepositoryToken(Workshop));
   });
 
-  it('is defined', () => {
+  it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  it('lists the branches of the chain ordered by id', async () => {
-    const branches = [
-      { id: 1, name: 'Arenosa Via 40' },
-      { id: 2, name: 'Arenosa Malecon' },
-      { id: 3, name: 'Arenosa Norte' },
-    ];
-    repository.find.mockResolvedValueOnce(branches);
+  describe('create', () => {
+    it('should successfully create a workshop', async () => {
+      const dto = { name: 'Arenosa Via 40', location: 'Corridor', address: 'Via 40', city: 'Barranquilla' };
+      repository.findOne.mockResolvedValue(null);
+      repository.create.mockReturnValue(dto);
+      repository.save.mockResolvedValue({ id: 1, ...dto, active: true });
 
-    await expect(service.findAll()).resolves.toEqual(branches);
+      const result = await service.create(dto);
+      expect(result).toEqual({ id: 1, ...dto, active: true });
+    });
 
-    expect(repository.find).toHaveBeenCalledTimes(1);
-    expect(repository.find).toHaveBeenCalledWith({ order: { id: 'ASC' } });
+    it('should throw ConflictException if workshop name already exists', async () => {
+      const dto = { name: 'Arenosa Via 40', location: 'Corridor', address: 'Via 40', city: 'Barranquilla' };
+      repository.findOne.mockResolvedValue({ id: 1, ...dto });
+
+      await expect(service.create(dto)).rejects.toThrow(ConflictException);
+    });
   });
 
-  it('answers with an empty list when the table has no rows yet', async () => {
-    repository.find.mockResolvedValueOnce([]);
+  describe('findAllActive', () => {
+    it('should return an array of active workshops', async () => {
+      const activeWorkshops = [{ id: 1, name: 'Via 40', active: true }];
+      repository.find.mockResolvedValue(activeWorkshops);
 
-    await expect(service.findAll()).resolves.toEqual([]);
+      const result = await service.findAllActive();
+      expect(result).toEqual(activeWorkshops);
+      expect(repository.find).toHaveBeenCalledWith({ where: { active: true } });
+    });
+  });
+
+  describe('findOne', () => {
+    it('should return a workshop by ID', async () => {
+      const workshop = { id: 1, name: 'Via 40' };
+      repository.findOne.mockResolvedValue(workshop);
+
+      const result = await service.findOne(1);
+      expect(result).toEqual(workshop);
+    });
+
+    it('should throw NotFoundException if workshop is not found', async () => {
+      repository.findOne.mockResolvedValue(null);
+      await expect(service.findOne(99)).rejects.toThrow(NotFoundException);
+    });
   });
 });

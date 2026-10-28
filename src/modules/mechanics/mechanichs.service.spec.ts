@@ -1,56 +1,62 @@
-import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Receptionist } from './entities/mechanichs.entity.js';
-import { ReceptionistsService } from './mechanichs.service.js';
+import { NotFoundException, ConflictException } from '@nestjs/common';
+import { MechanicsService } from './mechanichs.service.js';
+import { Mechanichs } from './entities/mechanichs.entity.js';
 
-/** Repository double: only the methods used by the service are declared. */
-const repository = {
-  find: jest.fn<() => Promise<unknown>>(),
-  findOneBy: jest.fn<(criteria: Record<string, unknown>) => Promise<unknown>>(),
-};
+const mockRepository = () => ({
+  find: jest.fn(),
+  findOne: jest.fn(),
+  create: jest.fn(),
+  save: jest.fn(),
+});
 
-describe('ReceptionistsService', () => {
-  let service: ReceptionistsService;
+describe('MechanicsService', () => {
+  let service: MechanicsService;
+  let repository: any;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        ReceptionistsService,
-        { provide: getRepositoryToken(Receptionist), useValue: repository },
+        MechanicsService,
+        {
+          provide: getRepositoryToken(Mechanichs),
+          useFactory: mockRepository,
+        },
       ],
     }).compile();
 
-    service = module.get<ReceptionistsService>(ReceptionistsService);
+    service = module.get<MechanicsService>(MechanicsService);
+    repository = module.get(getRepositoryToken(Mechanichs));
   });
 
-  it('is defined', () => {
+  it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  it('lists the receptionists ordered by id', async () => {
-    const rows = [
-      { id: 1, name: 'Maria Rojas', active: true },
-      { id: 2, name: 'Luis Mejia', active: true },
-    ];
-    repository.find.mockResolvedValueOnce(rows);
+  describe('create', () => {
+    it('should successfully create a mechanic', async () => {
+      const dto = { name: 'Maria Rojas', document: '12345', phone: '300123', email: 'maria@arenosa.example' };
+      repository.findOne.mockResolvedValue(null);
+      repository.create.mockReturnValue(dto);
+      repository.save.mockResolvedValue({ id: 1, ...dto, active: true });
 
-    await expect(service.findAll()).resolves.toEqual(rows);
-    expect(repository.find).toHaveBeenCalledWith({ order: { id: 'ASC' } });
+      const result = await service.create(dto);
+      expect(result).toEqual({ id: 1, ...dto, active: true });
+    });
+
+    it('should throw ConflictException if email already registered', async () => {
+      const dto = { name: 'Maria Rojas', document: '12345', phone: '300123', email: 'maria@arenosa.example' };
+      repository.findOne.mockResolvedValue({ id: 1, ...dto });
+
+      await expect(service.create(dto)).rejects.toThrow(ConflictException);
+    });
   });
 
-  it('looks a receptionist up by id (used before registering a reservation)', async () => {
-    repository.findOneBy.mockResolvedValueOnce({ id: 1, active: true });
-
-    await expect(service.find(1)).resolves.toMatchObject({ id: 1 });
-    expect(repository.findOneBy).toHaveBeenCalledWith({ id: 1 });
-  });
-
-  it('answers null when the receptionist does not exist, so the caller answers 400', async () => {
-    repository.findOneBy.mockResolvedValueOnce(null);
-
-    await expect(service.find(999)).resolves.toBeNull();
+  describe('findOne', () => {
+    it('should throw NotFoundException if mechanic does not exist', async () => {
+      repository.findOne.mockResolvedValue(null);
+      await expect(service.findOne(99)).rejects.toThrow(NotFoundException);
+    });
   });
 });
