@@ -16,12 +16,12 @@ const buildRepository = () => ({
   query: jest.fn<(sql: string) => Promise<unknown>>(),
 });
 
-const hotelsRepository = buildRepository();
-const roomsRepository = buildRepository();
-const receptionistsRepository = buildRepository();
+const workshopsRepository = buildRepository();
+const carsRepository = buildRepository();
+const mechanicsRepository = buildRepository();
 const usersRepository = buildRepository();
 
-const repositories = [hotelsRepository, roomsRepository, receptionistsRepository, usersRepository];
+const repositories = [workshopsRepository, carsRepository, mechanicsRepository, usersRepository];
 
 /**
  * The seed reads SEED_USER_PASSWORD and BCRYPT_ROUNDS from .env; a low cost
@@ -51,9 +51,9 @@ describe('SeedService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SeedService,
-        { provide: getRepositoryToken(Workshop), useValue: hotelsRepository },
-        { provide: getRepositoryToken(Car), useValue: roomsRepository },
-        { provide: getRepositoryToken(Mechanichs), useValue: receptionistsRepository },
+        { provide: getRepositoryToken(Workshop), useValue: workshopsRepository },
+        { provide: getRepositoryToken(Car), useValue: carsRepository },
+        { provide: getRepositoryToken(Mechanichs), useValue: mechanicsRepository },
         { provide: getRepositoryToken(User), useValue: usersRepository },
         { provide: ConfigService, useValue: configService },
       ],
@@ -80,41 +80,41 @@ describe('SeedService', () => {
   });
 
   it('seeds only the tables that are empty', async () => {
-    hotelsRepository.count.mockResolvedValueOnce(3);
-    roomsRepository.count.mockResolvedValueOnce(0);
-    receptionistsRepository.count.mockResolvedValueOnce(0);
+    workshopsRepository.count.mockResolvedValueOnce(3);
+    carsRepository.count.mockResolvedValueOnce(0);
+    mechanicsRepository.count.mockResolvedValueOnce(0);
     usersRepository.count.mockResolvedValueOnce(0);
 
     await service.onApplicationBootstrap();
 
-    expect(hotelsRepository.insert).not.toHaveBeenCalled();
-    expect(roomsRepository.insert).toHaveBeenCalledTimes(1);
-    expect(receptionistsRepository.insert).toHaveBeenCalledTimes(1);
+    expect(workshopsRepository.insert).not.toHaveBeenCalled();
+    expect(carsRepository.insert).toHaveBeenCalledTimes(1);
+    expect(mechanicsRepository.insert).toHaveBeenCalledTimes(1);
     expect(usersRepository.insert).toHaveBeenCalledTimes(1);
   });
 
-  it('creates 3 branches, 6 rooms, 2 receptionists and 4 users', async () => {
+  it('creates 3 workshops, 6 cars, 2 mechanics and 4 users', async () => {
     await seedWithEmptyTables();
 
-    const hotels = hotelsRepository.insert.mock.calls[0][0] as { id: number; name: string }[];
-    const rooms = roomsRepository.insert.mock.calls[0][0] as { id: number; hotelId: number }[];
-    const receptionists = receptionistsRepository.insert.mock.calls[0][0] as { id: number }[];
+    const workshops = workshopsRepository.insert.mock.calls[0][0] as { id: number; name: string }[];
+    const cars = carsRepository.insert.mock.calls[0][0] as { id: number; workshopid: number }[];
+    const mechanics = mechanicsRepository.insert.mock.calls[0][0] as { id: number }[];
     const users = usersRepository.insert.mock.calls[0][0] as { username: string }[];
 
-    expect(hotels).toHaveLength(3);
-    expect(hotels[0]).toMatchObject({ id: 1, name: 'Arenosa Via 40' });
+    expect(workshops).toHaveLength(3);
+    expect(workshops[0]).toMatchObject({ id: 1, name: 'Arenosa Via 40' });
 
-    expect(rooms).toHaveLength(6);
-    expect(rooms.map((room) => room.hotelId)).toEqual([1, 1, 1, 2, 2, 3]);
+    expect(cars).toHaveLength(6);
+    expect(cars.map((car) => car.workshopid)).toEqual([1, 1, 1, 2, 2, 3]);
 
-    expect(receptionists).toHaveLength(2);
+    expect(mechanics).toHaveLength(2);
 
     expect(users).toHaveLength(4);
     expect(users.map((user) => user.username)).toEqual([
       'admin-1',
       'coordinator-1',
-      'receptionist-1',
-      'receptionist-2',
+      'mechanic-1',
+      'mechanic-2',
     ]);
   });
 
@@ -132,19 +132,19 @@ describe('SeedService', () => {
     }
   });
 
-  it('links the receptionist users to the rows of the receptionists table', async () => {
+  it('links the mechanic users to the rows of the mechanics table', async () => {
     await seedWithEmptyTables();
 
     const users = usersRepository.insert.mock.calls[0][0] as {
       username: string;
       role: Role;
-      receptionistId: number | null;
+      mechanicId: number | null;
     }[];
 
-    expect(users[0]).toMatchObject({ role: Role.ADMIN, receptionistId: 1 });
-    expect(users[1]).toMatchObject({ role: Role.TECHNICIAN, receptionistId: 2 });
-    expect(users[2]).toMatchObject({ role: Role.TECHNICIAN, receptionistId: 1 });
-    expect(users[3]).toMatchObject({ role: Role.TECHNICIAN, receptionistId: 2 });
+    expect(users[0]).toMatchObject({ role: Role.ADMIN, mechanicId: 1 });
+    expect(users[1]).toMatchObject({ role: Role.TECHNICIAN, mechanicId: 2 });
+    expect(users[2]).toMatchObject({ role: Role.TECHNICIAN, mechanicId: 1 });
+    expect(users[3]).toMatchObject({ role: Role.TECHNICIAN, mechanicId: 2 });
   });
 
   it('gives every account the same initial password', async () => {
@@ -160,12 +160,12 @@ describe('SeedService', () => {
     await seedWithEmptyTables();
 
     // Any repository can run raw SQL: all four calls go to the first one.
-    const statements = hotelsRepository.query.mock.calls.map(([sql]) => sql);
+    const statements = workshopsRepository.query.mock.calls.map(([sql]) => sql);
 
     expect(statements).toHaveLength(4);
-    expect(statements[0]).toContain("setval(pg_get_serial_sequence('hotels', 'id')");
-    expect(statements[1]).toContain("setval(pg_get_serial_sequence('rooms', 'id')");
-    expect(statements[2]).toContain("setval(pg_get_serial_sequence('receptionists', 'id')");
+    expect(statements[0]).toContain("setval(pg_get_serial_sequence('workshop', 'id')");
+    expect(statements[1]).toContain("setval(pg_get_serial_sequence('cars', 'id')");
+    expect(statements[2]).toContain("setval(pg_get_serial_sequence('mechanics', 'id')");
     expect(statements[3]).toContain("setval(pg_get_serial_sequence('users', 'id')");
     expect(statements.every((sql) => sql.includes('MAX(id)'))).toBe(true);
   });
