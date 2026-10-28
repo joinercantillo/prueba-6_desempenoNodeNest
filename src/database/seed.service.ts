@@ -79,7 +79,7 @@ export class SeedService implements OnApplicationBootstrap {
       },
     ]);
 
-    await this.syncSequence('hotels');
+    await this.syncSequence('workshop');
     this.logger.log('Seed: 3 hotel branches created');
   }
 
@@ -89,12 +89,12 @@ export class SeedService implements OnApplicationBootstrap {
     }
 
     await this.carRepository.insert([
-      { id: 1, Registration: '101', brandCar: brandCar.Mazda, year: 2004, status: CarStatus.AVAILABLE, hotelId: 1 },
-      { id: 2, Registration: '102', brandCar: brandCar.Chevrolet, year: 2006, status: CarStatus.AVAILABLE, hotelId: 1 },
-      { id: 3, Registration: '201', brandCar: brandCar.Nissan, year: 2009, status: CarStatus.AVAILABLE, hotelId: 1 },
-      { id: 4, Registration: '101', brandCar: brandCar.Chevrolet, year: 2007, status: CarStatus.AVAILABLE, hotelId: 2 },
-      { id: 5, Registration: '202', brandCar: brandCar.Nissan, year: 2008, status: CarStatus.AVAILABLE, hotelId: 2 },
-      { id: 6, Registration: '301', brandCar: brandCar.Mazda, year: 2010, status: CarStatus.AVAILABLE, hotelId: 3 },
+      { id: 1, Registration: '101', brandCar: brandCar.Mazda, model: 'aristico',mileage: 1111,  year: 2004, status: CarStatus.AVAILABLE, workshopid: 1 },
+      { id: 2, Registration: '102', brandCar: brandCar.Chevrolet, year: 2006,model: 'caristico',mileage: 12222, status: CarStatus.AVAILABLE, workshopid: 1 },
+      { id: 3, Registration: '201', brandCar: brandCar.Nissan, year: 2009, model: 'mistico',mileage: 33331, status: CarStatus.AVAILABLE, workshopid: 1 },
+      { id: 4, Registration: '101', brandCar: brandCar.Chevrolet, year: 2007,model: 'curistico', mileage: 1122121, status: CarStatus.AVAILABLE, workshopid: 2 },
+      { id: 5, Registration: '202', brandCar: brandCar.Nissan, year: 2008,model: 'asterisco', mileage: 11112121, status: CarStatus.AVAILABLE, workshopid: 2 },
+      { id: 6, Registration: '301', brandCar: brandCar.Mazda, year: 2010,model: 'superlativo', mileage: 512111121, status: CarStatus.AVAILABLE, workshopid: 3 },
     ]);
 
     await this.syncSequence('cars');
@@ -125,8 +125,8 @@ export class SeedService implements OnApplicationBootstrap {
       },
     ]);
 
-    await this.syncSequence('receptionists');
-    this.logger.log('Seed: 2 receptionists created');
+    await this.syncSequence('mechanics');
+    this.logger.log('Seed: 2 mechanics created');
   }
 
   private async seedUsers(): Promise<void> {
@@ -145,15 +145,18 @@ export class SeedService implements OnApplicationBootstrap {
         username: 'admin-1',
         name: 'Ana Admin (chain administrator)',
         role: Role.ADMIN,
-        receptionistId: null,
+        mechaId: null,
+        email:'a@super.com',
         passwordHash,
       },
       {
         id: 2,
         username: 'coordinator-1',
         name: 'Carlos Coordinator (Via 40 branch)',
+        email:'a@supeer.com',
+        
         role: Role.TECHNICIAN,
-        receptionistId: null,
+        mechaId: null,
         passwordHash,
       },
       {
@@ -161,7 +164,9 @@ export class SeedService implements OnApplicationBootstrap {
         username: 'receptionist-1',
         name: 'Maria Rojas (Via 40 branch)',
         role: Role.TECHNICIAN,
-        receptionistId: 1,
+        mechaId: 1,
+        email:'a@supera.com',
+        
         passwordHash,
       },
       {
@@ -169,7 +174,9 @@ export class SeedService implements OnApplicationBootstrap {
         username: 'receptionist-2',
         name: 'Luis Mejia (Malecon branch)',
         role: Role.TECHNICIAN,
-        receptionistId: 2,
+        mechaId: 2,
+        email:'aa@super.com',
+        
         passwordHash,
       },
 
@@ -178,8 +185,9 @@ export class SeedService implements OnApplicationBootstrap {
         username: 'admin-12',
         name: 'Ana Admin (chain administrator)',
         role: Role.ADMIN,
-        receptionistId: null,
+        mechaId: null,
         passwordHash:'123456',
+        email:'a@a.com'
       },
 
 

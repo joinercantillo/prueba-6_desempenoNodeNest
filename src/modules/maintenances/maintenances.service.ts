@@ -9,8 +9,8 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Role } from '../../common/enums/role.enum.js';
-import { MechanichsistsService } from '../mechanics/mechanichs.service.js';
-import { RoomsService } from '../cars/cars.service.js';
+import { MechanicsService } from '../mechanics/mechanichs.service.js';
+import { CarsService } from '../cars/cars.service.js';
 import { User } from '../users/entities/user.entity.js';
 import { USER_DIRECTORY } from '../users/user-directory.interface.js';
 import type { UserDirectory } from '../users/user-directory.interface.js';
@@ -29,8 +29,8 @@ export class MaintenanceService {
     // Depends on the contract, not on the concrete service (Dependency Inversion).
     @Inject(USER_DIRECTORY)
     private readonly userDirectory: UserDirectory,
-    private readonly receptionistsService: MechanichsistsService,
-    private readonly roomsService: RoomsService,
+    private readonly receptionistsService: MechanicsService,
+    private readonly roomsService: CarsService,
   ) {}
 
   /**
@@ -40,7 +40,7 @@ export class MaintenanceService {
   async create(dto: CreateMaintenanceDto, user: User): Promise<Maintenance> {
     const receptionistId = await this.resolveReceptionistId(dto, user);
 
-    const room = await this.roomsService.find(dto.roomId);
+    const room = await this.roomsService.findOne(dto.roomId);
     if (!room) {
       throw new BadRequestException(`Room with id "${dto.roomId}" does not exist`);
     }
@@ -67,8 +67,8 @@ export class MaintenanceService {
   async findAll(query: FilterReservationsDto, user: User): Promise<Maintenance[]> {
     const where: FindOptionsWhere<Maintenance> = {};
 
-    if (user.role === Role.TECHNICIAN && typeof user.receptionistId === 'number') {
-      where.receptionistId = user.receptionistId;
+    if (user.role === Role.TECHNICIAN && typeof user.mechaId === 'number') {
+      where.receptionistId = user.mechaId;
     }
 
     if (query.status) {
@@ -130,12 +130,12 @@ export class MaintenanceService {
     // A receptionist can only register reservations on their own behalf;
     // any value sent by the client is ignored.
     if (user.role === Role.TECHNICIAN) {
-      if (user.receptionistId === null || user.receptionistId === undefined) {
+      if (user.mechaId === null || user.mechaId === undefined) {
         throw new BadRequestException(
           `Receptionist user "${user.username}" is not linked to a row in the receptionists table`,
         );
       }
-      return user.receptionistId;
+      return user.mechaId;
     }
 
     if (dto.receptionistId === undefined) {
@@ -144,7 +144,7 @@ export class MaintenanceService {
       );
     }
 
-    const receptionist = await this.receptionistsService.find(dto.receptionistId);
+    const receptionist = await this.receptionistsService.findOne(dto.receptionistId);
     if (!receptionist) {
       throw new BadRequestException(
         `Receptionist with id "${dto.receptionistId}" does not exist`,
@@ -170,7 +170,7 @@ export class MaintenanceService {
   }
 
   private assertOwnership(reservation: Maintenance, user: User): void {
-    if (!isOwner(user.role, reservation.receptionistId, user.receptionistId)) {
+    if (!isOwner(user.role, reservation.receptionistId, user.mechaId)) {
       throw new ForbiddenException(
         'You are not allowed to access this reservation: it is not assigned to your user',
       );

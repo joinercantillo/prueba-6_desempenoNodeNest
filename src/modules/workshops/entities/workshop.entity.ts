@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 
 /** Branches of the Arenosa Hotels chain (Via 40, Rio Riverwalk and North city). */
-@Entity('hotels')
+@Entity('workshop')
 export class Workshop {
   @ApiProperty({ example: 1, description: 'Auto generated identifier' })
   @PrimaryGeneratedColumn()
@@ -44,7 +44,7 @@ export class Workshop {
 
   /**
    * The rooms are not declared here on purpose: `Room` already holds the
-   * hotel_id foreign key and defining both sides would create a circular
+   * workshops_id foreign key and defining both sides would create a circular
    * import between the two entity files.
    */
 }

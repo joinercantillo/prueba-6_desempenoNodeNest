@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 
 /** Receptionists of the chain; reservations point to them through receptionist_id. */
-@Entity('mechanichs')
+@Entity('mechanics')
 export class Mechanichs {
   @ApiProperty({ example: 1, description: 'Auto generated identifier' })
   @PrimaryGeneratedColumn()

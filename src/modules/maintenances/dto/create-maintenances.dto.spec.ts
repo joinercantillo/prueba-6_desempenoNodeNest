@@ -1,6 +1,6 @@
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { CreateReservationDto } from './create-reservation.dto.js';
+import { CreateMaintenanceDto } from './create-maintenances.dto.js';
 
 const isoDaysFromToday = (offset: number): string => {
   const date = new Date();
@@ -11,8 +11,8 @@ const isoDaysFromToday = (offset: number): string => {
   return `${year}-${month}-${day}`;
 };
 
-const build = (payload: Record<string, unknown>): CreateReservationDto =>
-  plainToInstance(CreateReservationDto, payload);
+const build = (payload: Record<string, unknown>): CreateMaintenanceDto =>
+  plainToInstance(CreateMaintenanceDto, payload);
 
 const validateDto = (payload: Record<string, unknown>) =>
   validate(build(payload), { whitelist: true, forbidNonWhitelisted: true });

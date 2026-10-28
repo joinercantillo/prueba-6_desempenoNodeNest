@@ -4,7 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Role } from '../../common/enums/role.enum.js';
 import { MechanichsistsService } from '../mechanics/mechanichs.service.js';
-import { RoomsService } from '../cars/cars.service.js';
+import { CarsService } from '../cars/cars.service.js';
 import { brandCar } from '../cars/enums/car-type.enum.js';
 import { USER_DIRECTORY } from '../users/user-directory.interface.js';
 import type { UserDirectory } from '../users/user-directory.interface.js';
@@ -47,9 +47,10 @@ const roomsService = {
 const buildUser = (overrides: Partial<User> = {}): User => ({
   id: 3,
   username: 'receptionist-1',
+  email: 'lisa@a.com',
   name: 'Maria Rojas (Via 40 branch)',
   role: Role.TECHNICIAN,
-  receptionistId: 1,
+  mechaId: 1,
   passwordHash: 'hashed',
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
   ...overrides,
@@ -90,7 +91,7 @@ describe('ReservationsService', () => {
         { provide: getRepositoryToken(Maintenance), useValue: repository },
         { provide: USER_DIRECTORY, useValue: userDirectory },
         { provide: MechanichsistsService, useValue: MechanichsistsService },
-        { provide: RoomsService, useValue: roomsService },
+        { provide: CarsService, useValue: roomsService },
       ],
     }).compile();
 
@@ -132,7 +133,7 @@ describe('ReservationsService', () => {
 
     it('answers 400 when the receptionist user is not linked to the receptionists table', async () => {
       const error = await failureOf(
-        service.create(buildDto({ receptionistId: 2 }), buildUser({ receptionistId: null })),
+        service.create(buildDto({ receptionistId: 2 }), buildUser({ mechaId: null })),
       );
 
       expect(error).toBeInstanceOf(BadRequestException);
@@ -215,7 +216,7 @@ describe('ReservationsService', () => {
     it('does not restrict the query when the receptionist has no linked row', async () => {
       repository.find.mockResolvedValueOnce([]);
 
-      await service.findAll({}, buildUser({ receptionistId: null }));
+      await service.findAll({}, buildUser({ mechaId: null }));
 
       const options = repository.find.mock.calls[0][0] as { where: Record<string, unknown> };
       expect(options.where).not.toHaveProperty('receptionistId');

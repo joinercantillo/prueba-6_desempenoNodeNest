@@ -11,6 +11,7 @@ import {
 import { Workshop } from '../../workshops/entities/workshop.entity.js';
 import { CarStatus } from '../enums/car-status.enum.js';
 import { brandCar } from '../enums/car-type.enum.js';
+import { IsNumber } from 'class-validator';
 
 /** Rooms available in each branch. */
 @Entity('cars')
@@ -32,14 +33,22 @@ export class Car {
   @Column({ type: 'int' })
   year: number;
   
+  @ApiProperty({ example: 15000 })
+  @IsNumber()
+  mileage: number;
 
   @ApiProperty({ example: 'AVAILABLE', description: 'Operational status', enum: CarStatus })
   @Column({ type: 'varchar', length: 20, default: CarStatus.AVAILABLE })
   status: CarStatus;
 
-  @ApiProperty({ example: 1, description: 'Branch the room belongs to' })
+  @ApiProperty({ example: 1, description: 'workshop car belongs to' })
   @Column({ name: 'hotel_id' })
-  hotelId: number;
+  workshopid: number;
+
+
+  @ApiProperty({ example: 1, description: 'car model' })
+  @Column({ type: 'varchar' })
+  model: string
 
   @ApiProperty({ description: 'Creation timestamp' })
   @CreateDateColumn({ name: 'created_at' })
@@ -51,5 +60,9 @@ export class Car {
 
   @ManyToOne(() => Workshop, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'hotel_id' })
-  hotel: Workshop;
+  workshop: Workshop;
+
+  @ApiProperty({ example: false, description: 'Soft delete flag' })
+  @Column({ name: 'is_active', type: 'boolean', default: true })
+  isActive: boolean;
 }

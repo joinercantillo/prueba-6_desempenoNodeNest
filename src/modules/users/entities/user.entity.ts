@@ -26,6 +26,10 @@ export class User {
   @Column({ type: 'varchar', length: 100 })
   name: string;
 
+  @ApiProperty({ example: 'Maria Rojas (Via 40 branch)', description: 'Display name' })
+  @Column({ type: 'varchar', length: 100 })
+  email: string;
+
   @ApiProperty({ enum: Role, example: Role.ADMIN, description: 'Permissions of the user' })
   @Column({ type: 'varchar', length: 20 })
   role: Role;
@@ -35,7 +39,7 @@ export class User {
     description: 'Row in the receptionists table. Only for users with the receptionist role.',
   })
   @Column({ name: 'receptionist_id', type: 'int', nullable: true })
-  receptionistId: number | null;
+  mechaId: number | null;
 
   @Column({ name: 'password_hash', type: 'varchar', length: 100, select: false })
   passwordHash: string;

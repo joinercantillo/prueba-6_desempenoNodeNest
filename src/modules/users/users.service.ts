@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../../common/enums/role.enum.js';
-import { MechanichsistsService } from '../mechanics/mechanichs.service.js';
+import { MechanicsService } from '../mechanics/mechanichs.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { User } from './entities/user.entity.js';
@@ -22,7 +22,7 @@ export class UsersService implements UserDirectory {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-    private readonly receptionistsService: MechanichsistsService,
+    private readonly receptionistsService: MechanicsService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -36,14 +36,17 @@ export class UsersService implements UserDirectory {
     // before the business validation so both cases behave the same way.
     const receptionistId = createUserDto.receptionistId ?? undefined;
 
+    const hashedPassword = await this.hash(createUserDto.password);
+
     await this.assertReceptionistLink(createUserDto.role, receptionistId);
 
     const user = this.usersRepository.create({
       username: createUserDto.username,
-      name: createUserDto.name,
-      role: createUserDto.role,
-      receptionistId: receptionistId ?? null,
-      passwordHash: await this.hash(createUserDto.password),
+    name: createUserDto.name,
+    email: createUserDto.email,
+    role: createUserDto.role,
+      mechaId: createUserDto.receptionistId, // Mantén la relación obligatoria según tu regla de negocio
+      passwordHash: hashedPassword,
     });
 
     return this.toPublic(await this.usersRepository.save(user));
@@ -74,13 +77,13 @@ export class UsersService implements UserDirectory {
         ? updateUserDto.receptionistId
         : updateUserDto.role !== undefined && updateUserDto.role !== Role.TECHNICIAN
           ? null
-          : user.receptionistId;
+          : user.mechaId;
 
     await this.assertReceptionistLink(nextRole, nextReceptionistId ?? undefined);
 
     user.name = updateUserDto.name ?? user.name;
     user.role = nextRole;
-    user.receptionistId = nextReceptionistId;
+    user.mechaId = nextReceptionistId;
 
     if (updateUserDto.password) {
       user.passwordHash = await this.hash(updateUserDto.password);
@@ -115,7 +118,7 @@ export class UsersService implements UserDirectory {
         username: true,
         name: true,
         role: true,
-        receptionistId: true,
+        mechaId: true,
         passwordHash: true,
       },
     });
@@ -126,10 +129,10 @@ export class UsersService implements UserDirectory {
    * else: the referenced row must belong to a receptionist role user.
    */
   async findReceptionistByReceptionistId(
-    receptionistId: number,
+    mechaId: number,
   ): Promise<User | undefined> {
     const user = await this.usersRepository.findOneBy({
-      receptionistId,
+      mechaId,
       role: Role.TECHNICIAN,
     });
     return user ?? undefined;
@@ -143,7 +146,7 @@ export class UsersService implements UserDirectory {
     if (role !== Role.TECHNICIAN) {
       if (receptionistId !== undefined) {
         throw new BadRequestException(
-          'receptionistId is only valid when the role is "receptionist"',
+          'technicianid is only valid when the role is "receptionist"',
         );
       }
       return;
@@ -151,16 +154,16 @@ export class UsersService implements UserDirectory {
 
     if (receptionistId === undefined) {
       throw new BadRequestException(
-        'receptionistId is required when the role is "receptionist"',
+        'technicianid is required when the role is "receptionist"',
       );
     }
 
-    const receptionist = await this.receptionistsService.find(receptionistId);
+    const receptionist = await this.receptionistsService.findOne(receptionistId);
     if (!receptionist) {
-      throw new BadRequestException(`Receptionist with id "${receptionistId}" does not exist`);
+      throw new BadRequestException(`technician with id "${receptionistId}" does not exist`);
     }
     if (!receptionist.active) {
-      throw new BadRequestException(`Receptionist with id "${receptionistId}" is not active`);
+      throw new BadRequestException(`technician with id "${receptionistId}" is not active`);
     }
   }
 
