@@ -4,8 +4,10 @@ import { MainteanceModule } from '../mechanics/mechanichs.module.js';
 import { CarsModule } from '../cars/cars.module.js';
 import { UsersModule } from '../users/users.module.js';
 import { Maintenance } from './entities/maintenances.entity.js';
-import { ReservationsController } from './maintenances.controller.js';
-import { MaintenanceService } from './maintenances.service.js';
+import { MaintenancesController } from './maintenances.controller.js';
+import { MaintenancesService } from './maintenances.service.js';
+import { Workshop } from '../workshops/entities/workshop.entity.js';
+import { WorkshopsModule } from '../workshops/workshops.module.js'; 
 
 @Module({
   imports: [
@@ -13,8 +15,10 @@ import { MaintenanceService } from './maintenances.service.js';
     UsersModule,
     MainteanceModule,
     CarsModule,
+    WorkshopsModule
   ],
-  controllers: [ReservationsController],
-  providers: [MaintenanceService],
+  controllers: [MaintenancesController],
+  providers: [MaintenancesService],
+  
 })
 export class ReservationsModule {}

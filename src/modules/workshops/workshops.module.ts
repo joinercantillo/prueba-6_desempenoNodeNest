@@ -10,4 +10,4 @@ import { WorkshopsService } from './workshops.service.js';
   providers: [WorkshopsService],
   exports: [WorkshopsService],
 })
-export class HotelsModule {}
+export class WorkshopsModule {}
