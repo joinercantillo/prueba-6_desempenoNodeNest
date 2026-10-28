@@ -1,3 +1,7 @@
+
+# JOINER CANTILLO - CLAN: CENTURION NODEJS PM
+
+
 # 🚗 Vehicle Maintenance Chain API
 
 A robust, enterprise-grade backend REST API built with **NestJS**, **TypeORM**, and **PostgreSQL** designed to manage a vehicle maintenance service chain. It features strict business rule validation, secure role-based access control, automated vehicle state transitions, database seeding, and comprehensive **Swagger** documentation.
