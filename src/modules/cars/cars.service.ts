@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Car } from './entities/car.entity.js';
 import { CreateCarDto } from './dto/create-car.dto.js';
 import { UpdateCarDto } from './dto/update-car.dto.js';
+import { CarStatus } from './enums/car-status.enum.js';
 
 @Injectable()
 export class CarsService {
@@ -74,4 +75,21 @@ export class CarsService {
     car.isActive = false;
     await this.carRepository.save(car);
   }
+
+  // Add these methods inside CarsService if not already present:
+async updateStatus(id: number, status: CarStatus): Promise<Car> {
+  const car = await this.findOne(id);
+  car.status = status;
+  return await this.carRepository.save(car);
+}
+
+async updateMileage(id: number, newMileage: number): Promise<Car> {
+  const car = await this.findOne(id);
+  if (newMileage < car.mileage) {
+    throw new BadRequestException(`New mileage (${newMileage}) cannot be lower than current vehicle mileage (${car.mileage}).`);
+  }
+  car.mileage = newMileage;
+  return await this.carRepository.save(car);
+}
+
 }
